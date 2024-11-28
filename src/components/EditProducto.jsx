@@ -13,9 +13,8 @@ const EditProducto = () => {
 
     // Obtener los detalles del producto al cargar el componente
     useEffect(() => {
-        ApiServiceProduct.getProductoById(id) // Usar el método correcto
+        ApiServiceProduct.getProductoById(id)
             .then((response) => {
-                console.log("Producto obtenido:", response.data); // Verifica si los datos son correctos
                 setProducto(response.data); // Almacenar los detalles del producto en el estado
             })
             .catch((error) => {
@@ -34,7 +33,6 @@ const EditProducto = () => {
 
     // Función para guardar los cambios del producto
     const handleGuardar = () => {
-        console.log("Datos del producto a guardar:", producto); // Verifica los datos antes de enviarlos
         ApiServiceProduct.updateProducto(id, producto)
             .then(() => {
                 // Navegar al listado de productos después de guardar
