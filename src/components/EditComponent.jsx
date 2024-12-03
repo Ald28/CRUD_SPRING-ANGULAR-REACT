@@ -1,103 +1,127 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import ApiServiceProduct from "../services/ApiServiceProduct";
+import ApiService from "../services/ApiService"; // Servicio de API para clientes
 
-const EditProducto = () => {
-    const [producto, setProducto] = useState({
+const ClienteForm = () => {
+    const [formData, setFormData] = useState({
         nombre: "",
-        descripcion: "",
-        precio: "",
+        apellidos: "",
+        email: "",
     });
-    const { id } = useParams(); // Obtener el ID del producto desde la URL
-    const navigate = useNavigate(); // Hook para navegación
+    const { id } = useParams(); // Obtener el ID del cliente desde la URL
+    const navigate = useNavigate(); // Para redirigir al listado
 
-    // Obtener los detalles del producto al cargar el componente
+    // Si hay un ID, obtener los datos del cliente para editar
     useEffect(() => {
-        ApiServiceProduct.getProductoById(id) // Usar el método correcto
-            .then((response) => {
-                console.log("Producto obtenido:", response.data); // Verifica si los datos son correctos
-                setProducto(response.data); // Almacenar los detalles del producto en el estado
-            })
-            .catch((error) => {
-                console.error("Error al obtener el producto:", error);
-            });
-    }, [id]); // Se ejecuta cuando el ID cambia
+        if (id) {
+            ApiService.getClienteById(id) // Método para obtener cliente por ID
+                .then((response) => {
+                    console.log("Cliente obtenido:", response.data);
+                    setFormData(response.data); // Llenar el formulario con los datos del cliente
+                })
+                .catch((error) => {
+                    console.error("Error al obtener el cliente:", error);
+                });
+        }
+    }, [id]);
 
     // Manejar cambios en los campos del formulario
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setProducto((prevProducto) => ({
-            ...prevProducto,
-            [name]: value,
-        }));
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
     };
 
-    // Función para guardar los cambios del producto
-    const handleGuardar = () => {
-        console.log("Datos del producto a guardar:", producto); // Verifica los datos antes de enviarlos
-        ApiServiceProduct.updateProducto(id, producto)
-            .then(() => {
-                // Navegar al listado de productos después de guardar
-                navigate("/producto-list");
-            })
-            .catch((error) => {
-                console.error("Error al actualizar el producto:", error);
-            });
+    // Manejar el envío del formulario (crear o actualizar)
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (id) {
+            // Actualizar cliente existente
+            ApiService.updateCliente(id, formData)
+                .then(() => {
+                    console.log("Cliente actualizado con éxito");
+                    navigate("/listado"); // Redirigir al listado
+                })
+                .catch((error) => {
+                    console.error("Error al actualizar cliente:", error);
+                });
+        } else {
+            // Crear nuevo cliente
+            ApiService.createCliente(formData)
+                .then(() => {
+                    console.log("Cliente creado con éxito");
+                    navigate("/listado"); // Redirigir al listado
+                })
+                .catch((error) => {
+                    console.error("Error al crear cliente:", error);
+                });
+        }
     };
 
     return (
-        <div className="container">
-            <h1 className="mt-4">Editar Producto</h1>
-            <form>
-                <div className="mb-3">
-                    <label htmlFor="nombre" className="form-label">
-                        Nombre
-                    </label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        id="nombre"
-                        name="nombre"
-                        value={producto.nombre}
-                        onChange={handleChange}
-                    />
+        <div className="container mt-5">
+            <div className="card shadow-sm">
+                <div className="card-header bg-success text-white">
+                    <h3 className="mb-0">
+                        {id ? "Editar Cliente" : "Agregar Nuevo Cliente"}
+                    </h3>
                 </div>
-                <div className="mb-3">
-                    <label htmlFor="descripcion" className="form-label">
-                        Descripción
-                    </label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        id="descripcion"
-                        name="descripcion"
-                        value={producto.descripcion}
-                        onChange={handleChange}
-                    />
+                <div className="card-body">
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-3">
+                            <label htmlFor="nombre" className="form-label">Nombre:</label>
+                            <input
+                                type="text"
+                                id="nombre"
+                                name="nombre"
+                                className="form-control"
+                                value={formData.nombre}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="apellidos" className="form-label">Apellidos:</label>
+                            <input
+                                type="text"
+                                id="apellidos"
+                                name="apellidos"
+                                className="form-control"
+                                value={formData.apellidos}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="email" className="form-label">Email:</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                className="form-control"
+                                value={formData.email}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div className="d-flex justify-content-end">
+                            <button type="submit" className="btn btn-success me-2">
+                                {id ? "Guardar Cambios" : "Guardar"}
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-danger"
+                                onClick={() => navigate("/listado")}
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div className="mb-3">
-                    <label htmlFor="precio" className="form-label">
-                        Precio
-                    </label>
-                    <input
-                        type="number"
-                        className="form-control"
-                        id="precio"
-                        name="precio"
-                        value={producto.precio}
-                        onChange={handleChange}
-                    />
-                </div>
-                <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleGuardar}
-                >
-                    Guardar Cambios
-                </button>
-            </form>
+            </div>
         </div>
     );
 };
 
-export default EditProducto;
+export default ClienteForm;
